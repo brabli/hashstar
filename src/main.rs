@@ -3,7 +3,8 @@ use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 
-use iced::widget::{column, text};
+use clipboard::{ClipboardContext, ClipboardProvider};
+use iced::widget::{button, column, text};
 use iced::Element;
 use iced::Settings;
 use iced::{executor, subscription, window, Application, Command, Subscription};
@@ -17,11 +18,13 @@ fn main() -> iced::Result {
 #[derive(Debug, Clone)]
 enum Message {
     EventOccurred(Event),
+    CopyDigest,
 }
 
 #[derive(Default)]
 struct Hashstar {
-    value: String,
+    digest: String,
+    err: String,
 }
 
 impl Application for Hashstar {
@@ -36,17 +39,28 @@ impl Application for Hashstar {
     }
 
     fn view(&self) -> Element<Message> {
-        let column = column![text(&self.value).size(50),];
-
-        column.padding(20).into()
+        let column = column![
+            text(&self.err),
+            text("MD5 here"),
+            text(&self.digest).size(30),
+            button("Copy Digest").on_press(Message::CopyDigest)
+        ];
+        column
+            .padding(20)
+            .align_items(iced::Alignment::Center)
+            .into()
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
         match message {
             Message::EventOccurred(event) => {
                 if let Event::Window(window::Event::FileDropped(buf)) = event {
-                    self.value = format!("{:x}", hash_file(buf))
+                    self.digest = format!("{:x}", hash_file(buf))
                 }
+            }
+            Message::CopyDigest => {
+                let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
+                ctx.set_contents(self.digest.to_owned()).unwrap();
             }
         }
 

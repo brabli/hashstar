@@ -59,6 +59,7 @@ impl Application for Hashstar {
                 }
             }
             Message::CopyDigest => {
+                // The iced::clipboard does not appear to write to the clipboard
                 let mut ctx: ClipboardContext = ClipboardProvider::new().unwrap();
                 ctx.set_contents(self.digest.to_owned()).unwrap();
             }

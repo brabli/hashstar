@@ -5,14 +5,20 @@ use std::path::PathBuf;
 
 use clipboard::{ClipboardContext, ClipboardProvider};
 use iced::widget::{button, column, text};
-use iced::Element;
-use iced::Settings;
 use iced::{executor, subscription, window, Application, Command, Subscription};
+use iced::{Alignment, Element};
 use iced::{Event, Theme};
+use iced::{Length, Settings};
 use md5::Digest;
 
 fn main() -> iced::Result {
-    Hashstar::run(Settings::default())
+    Hashstar::run(Settings {
+        window: window::Settings {
+            size: (350, 230),
+            ..Default::default()
+        },
+        ..Default::default()
+    })
 }
 
 #[derive(Debug, Clone)]
@@ -31,7 +37,11 @@ impl Application for Hashstar {
     type Message = Message;
 
     fn new(_flags: ()) -> (Hashstar, Command<Message>) {
-        (Default::default(), Command::none())
+        let hashstar = Hashstar {
+            digest: String::from("Drag a file to calculate it's digest!"),
+            ..Default::default()
+        };
+        (hashstar, Command::none())
     }
 
     fn title(&self) -> String {
@@ -42,12 +52,15 @@ impl Application for Hashstar {
         let column = column![
             text(&self.err),
             text("MD5 here"),
-            text(&self.digest).size(30),
+            text(&self.digest).size(26),
             button("Copy Digest").on_press(Message::CopyDigest)
         ];
+
         column
             .padding(20)
-            .align_items(iced::Alignment::Center)
+            .spacing(10)
+            .align_items(Alignment::Center)
+            .width(Length::Fill)
             .into()
     }
 
